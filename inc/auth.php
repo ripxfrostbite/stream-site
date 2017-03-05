@@ -36,7 +36,7 @@ if (!empty($email) && $user->session_check($email) === false) {
 	if ($refer != '/img/favicon.ico') {
 		$_SESSION['dest_url'] = $refer;
 	}
-	header("Location: /login");
+	//header("Location: /login");
 }
 
 if (!empty($_SESSION['authenticated']) && $user->session_authenticate($_SESSION['authenticated'], $action) === false) {
@@ -50,6 +50,6 @@ if (empty($_SESSION['authenticated'])) {
 	if ($refer != '/img/favicon.ico') {
 		$_SESSION['dest_url'] = $refer;
 	}
-	header('Location: /login');
+	//header('Location: /login');
 }
 

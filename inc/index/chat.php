@@ -23,14 +23,19 @@
 
                         <textarea class="mdl-textfield__input" type="text" name="inputMessage" id="inputMessage"
 								  rows="1" autocomplete="off"/></textarea>
-
-						<label class="mdl-textfield__label" for="inputMessage">Enter message</label>
+                        
+						<label class="mdl-textfield__label" for="inputMessage"><?php if(!empty($_SESSION['authenticated'])) :?>Enter message<?php else : ?>You need to login before chatting!<?php endif ?></label>
 					</div>
+                    <?php if(!empty($_SESSION['authenticated'])) : ?>
 					<button type="submit" form="chatMessage"
 							class="mdl-button mdl-js-button mdl-button--icon sendbutton">
 						<i class="material-icons sendbuttonicon">send</i>
 					</button>
-
+                    <?php else : ?>
+                    <a href="/login" class="mdl-button mdl-js-button mdl-button--icon sendbutton">
+							<i class="material-icons sendbuttonicon">send</i>
+				    </a>
+                    <?php endif ?>
 				</div>
 			</div>
 

@@ -27,7 +27,7 @@ foreach ($rtmpinfo["rtmp"]["channels"] as $channelName => $skey) {
 
 					<?php
 					foreach ($channels as $channelName => $skey) {
-						$viewcount = trim(file_get_contents($furl . '/nclients?app=live&name=' . $channelName));
+						$viewcount = trim(file_get_contents('http://localhost/nclients?app=live&name=' . $channelName));
 
 						$cname = $user->updateStreamkey($channelName, 'channel');
 						$ctitle = $user->updateStreamkey($channelName, 'title');
@@ -71,7 +71,7 @@ foreach ($rtmpinfo["rtmp"]["channels"] as $channelName => $skey) {
 							$tooltipHtml = '';
 							foreach ($channels as $channelName => $skey) {
 								$seed = uniqid();
-								$viewcount = file_get_contents($furl . '/nclients?app=live&name=' . $channelName);
+								$viewcount = file_get_contents('http://localhost/nclients?app=live&name=' . $channelName);
 
 								$cname = $user->updateStreamkey($channelName, 'channel');
 								echo '

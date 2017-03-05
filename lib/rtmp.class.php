@@ -109,7 +109,7 @@ class rtmp extends database {
 		$this->rtmpinfo["rtmp"]["lastUpdate"] = time();
 		$this->rtmpinfo["rtmp"]["channels"] = [];
 		$surl = $_SERVER['HTTP_HOST'];
-		$rtmp = json_decode(json_encode((array) simplexml_load_file($GLOBALS['furl'] . '/stat.xml')), TRUE);
+		$rtmp = json_decode(json_encode((array) simplexml_load_file('http://localhost/stat')), TRUE);
 		$live = null;
 		foreach ($rtmp["server"]["application"] as $i => $application) {
 			if (is_numeric($i) && $application["name"] === "live") {

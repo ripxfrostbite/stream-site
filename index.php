@@ -27,8 +27,10 @@ $rtmpclass = new rtmp();
 $rtmpinfo = $rtmpclass->checkStreams();
 
 // grab account info
-$email = filter_var($_SESSION['authenticated'], FILTER_VALIDATE_EMAIL);
-$accountinfo = $user->info($email);
+if(!empty($_SESSION['authenticated'])){
+    $email = filter_var($_SESSION['authenticated'], FILTER_VALIDATE_EMAIL);
+    $accountinfo = $user->info($email);
+}
 
 // functions to convert raw bytes/bits to something more readable for stream info
 /**
@@ -68,16 +70,18 @@ if ($page === 'watch') {
 	$streamkey = $uriVars[1];
 	$subemail = $user->updateStreamkey($streamkey, 'email');
 	// Set up data for checking subscription status
-	$sub = new subscription($accountinfo['api_key'], $streamkey);
-	$list = $sub->_list();
-	$subarray = json_decode($list);
-	if (in_array($subemail, $subarray->subscribed)) {
-		$substatus = 'Unsubscribe';
-		$subcolor = 'style="background-color: rgb(0, 188, 212)"';
-	} else {
-		$substatus = 'Subscribe';
-		$subcolor = '';
-	}
+    if(!empty($_SESSION['authenticated'])) {
+	    $sub = new subscription($accountinfo['api_key'], $streamkey);
+	    $list = $sub->_list();
+	    $subarray = json_decode($list);
+	    if (in_array($subemail, $subarray->subscribed)) {
+		    $substatus = 'Unsubscribe';
+	    	$subcolor = 'style="background-color: rgb(0, 188, 212)"';
+    	} else {
+		    $substatus = 'Subscribe';
+		    $subcolor = '';
+	    }
+    }
 }
 if ($page === 'video') {
 	$video = $uriVars[1];
@@ -139,7 +143,7 @@ if ($page === 'download') {
 					Show/Hide Chat
 				</a>
 			<?php } ?>
-
+            <?php if(!empty($_SESSION['authenticated'])) :?>
 			<div class="avatar-dropdown" id="icon">
 				<span><?= $accountinfo['display_name'] ?></span>
 				<img src="<?= $accountinfo['profile_img'] ?>">
@@ -181,6 +185,29 @@ if ($page === 'download') {
 							</span>
 				</a>
 			</ul>
+            <?php else: ?>
+            <div class="avatar-dropdown" id="icon">
+				<span>Not Logged In</span>
+			</div>
+
+			<ul class="mdl-menu mdl-list mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect mdl-shadow--2dp account-dropdown"
+				for="icon">
+				<li class="mdl-list__item mdl-list__item--two-line">
+							<span class="mdl-list__item-primary-content">
+								<span>Not Logged In</span>
+								<span class="mdl-list__item-sub-title">not@logged.in.yet.com</span>
+							</span>
+				</li>
+				<li class="list__item--border-top"></li>
+
+				<a href="/login" class="mdl-menu__item mdl-list__item">
+							<span class="mdl-list__item-primary-content">
+								<i class="material-icons mdl-list__item-icon">account_circle</i>
+								<span>Log In or Register!</span>
+							</span>
+				</a>
+			</ul>
+            <?php endif ?>
 		</div>
 	</header>
 	<!-- END NAV HEADER -->
@@ -189,6 +216,16 @@ if ($page === 'download') {
 	<div class="mdl-layout__drawer">
 		<header class="dm-logo-header"><?= $sitetitle ?></header>
 		<nav class="mdl-navigation">
+            <?php if(empty($_SESSION['authenticated'])) :?>
+		        <a class="mdl-navigation__link<?php
+			        if ($page === 'login' || (empty($page) && empty($streamkey))) {
+				        echo ' mdl-navigation__link--current';
+			        }
+			        ?>" href="/login">
+				        <i class="material-icons" role="presentation">person</i>
+				        Login
+			    </a>
+            <?php endif ?>
 			<a class="mdl-navigation__link<?php
 			if ($page === 'channels' || (empty($page) && empty($streamkey))) {
 				echo ' mdl-navigation__link--current';
@@ -219,13 +256,14 @@ if ($page === 'download') {
 					<i class="material-icons" role="presentation">visibility</i>
 					Watching: <?php echo $user->updateStreamkey($streamkey, 'channel'); ?>
 				</a>
-
-				<button id="subButton" class="mdl-button mdl-js-button mdl-button--raised" channel="<?= $streamkey; ?>"
-						type="button" <?= $subcolor ?>><?= $substatus ?></button>
-				<div id="subToast" class="mdl-js-snackbar mdl-snackbar">
-					<div class="mdl-snackbar__text"></div>
-					<button class="mdl-snackbar__action" type="button"></button>
-				</div>
+                <?php if(!empty($_SESSION['authenticated'])) :?>
+				    <button id="subButton" class="mdl-button mdl-js-button mdl-button--raised" channel="<?= $streamkey; ?>"
+						    type="button" <?= $subcolor ?>><?= $substatus ?></button>
+				    <div id="subToast" class="mdl-js-snackbar mdl-snackbar">
+					    <div class="mdl-snackbar__text"></div>
+					    <button class="mdl-snackbar__action" type="button"></button>
+				    </div>
+                <?php endif ?>
 			<?php } else { ?>
 				<a class="mdl-navigation__link" href="/">
 					<i class="material-icons" role="presentation">visibility</i>
@@ -276,9 +314,15 @@ if ($page === 'download') {
 <script src="/js/rachni.js"></script>
 
 <script type='text/javascript'>
+    <?php if(!empty($_SESSION['authenticated'])) : ?>
 	var api_key = "<?= $accountinfo['api_key'] ?>";
 	var display_name = "<?= $accountinfo['display_name'] ?>";
 	var jp_status = "<?= $accountinfo['chat_jp_setting'] ?>";
+    <?php else : ?>
+    var api_key = "";
+	var display_name = "";
+	var jp_status = "";
+    <?php endif ?>
 	<?php if (!empty($streamkey)) { ?>
 	var stream_key = "<?php echo $user->updateStreamkey($streamkey, 'channel'); ?>";
 	var current_channel = '<?= $streamkey; ?>';
