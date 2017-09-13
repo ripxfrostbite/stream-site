@@ -16,6 +16,10 @@
  *
  */
 
+//check if the user is an admin
+$admincheck = $user->admincheck($accountinfo['email']);
+
+
 // run account info update if data was posted
 if (!empty($_POST['displayname'])) {
 	$channelname = filter_input(INPUT_POST, 'channelname', FILTER_SANITIZE_STRING);
@@ -36,7 +40,7 @@ if (!empty($_POST['displayname'])) {
 			<a href="#user" class="mdl-tabs__tab mdl-tabs__tab-settings is-active">User Settings</a>
 			<a href="#profile" class="mdl-tabs__tab mdl-tabs__tab-settings">Profile Settings</a>
 			<?php
-			if ($accountinfo['email'] === $admin_account) {
+			if ($admincheck === true) {
 				echo '<a href="#admin" class="mdl-tabs__tab mdl-tabs__tab-settings">Admin</a>';
 			}
 			?>
@@ -145,7 +149,7 @@ if (!empty($_POST['displayname'])) {
 		<div class="mdl-tabs__panel" id="profile">
 			<div class="mdl-content__settings">
 				<div class="mdl-grid">
-					<div class="mdl-card mdl-shadow--2dp avatar-form">
+					<div class="mdl-card mdl-shadow--2dp profile-form">
 						<div class="mdl-card__title">
 							<span>Avatar Update</span>
 						</div>
@@ -153,14 +157,14 @@ if (!empty($_POST['displayname'])) {
 							Current Avatar:
 							<div class="fill">
 								<img src="<?= $accountinfo['profile_img'] ?>"
-									 style="max-width: 100%; max-height: 100%;">
+									 style="max-width: 50%; max-height: 100%;">
 							</div>
 							<form action="/lib/upload.php" method="post" class="form" id="avatarUpdate"
 								  enctype="multipart/form-data">
 
 								<div class="mdl-textfield mdl-js-textfield mdl-textfield--file full-width">
 									<input class="mdl-textfield__input" placeholder="Browse..." type="text"
-										   id="file"
+										   id="avatar_file"
 										   readonly/>
 									<div class="mdl-button mdl-button--primary mdl-button--icon mdl-button--file">
 										<i class="material-icons">perm_media</i><input type="file" name="avatar"
@@ -178,7 +182,40 @@ if (!empty($_POST['displayname'])) {
 							</form>
 						</div>
 					</div>
-					<div class="mdl-card mdl-shadow--2dp settings-form">
+					<div class="mdl-card mdl-shadow--2dp profile-form">
+						<div class="mdl-card__title">
+							<span>Offline Image</span>
+						</div>
+						<div class="mdl-card__supporting-text">
+							Current offline Image:
+							<div class="fill">
+								<img src="<?= $accountinfo['offline_image'] ?>"
+									 style="max-width: 100%; max-height: 50%;">
+							</div>
+							<form action="/lib/upload.php" method="post" class="form" id="offlineUpdate"
+								  enctype="multipart/form-data">
+
+								<div class="mdl-textfield mdl-js-textfield mdl-textfield--file full-width">
+									<input class="mdl-textfield__input" placeholder="Browse..." type="text"
+										   id="offline_file"
+										   readonly/>
+									<div class="mdl-button mdl-button--primary mdl-button--icon mdl-button--file">
+										<i class="material-icons">perm_media</i><input type="file" name="offline"
+																					   id="offline">
+									</div>
+								</div>
+
+								<div class="form__action">
+									<button type="submit" name="Upload" value="Submit" form="offlineUpdate"
+											class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+										Upload
+									</button>
+								</div>
+
+							</form>
+						</div>
+					</div>
+					<div class="mdl-card mdl-shadow--2dp profile-form">
 						<div class="mdl-card__title">
 							<span>Subscription Settings</span>
 						</div>
@@ -189,8 +226,10 @@ if (!empty($_POST['displayname'])) {
 				</div>
 			</div>
 		</div>
-		<?php if ($accountinfo['email'] === $admin_account) {
-			$results = $user->admindata($accountinfo['email']) ?>
+		<?php
+		if ($admincheck === true) {
+			$results = $user->admindata($accountinfo['email']);
+			?>
 			<div class="mdl-tabs__panel" id="admin">
 				<div class="mdl-content__settings">
 					<div class="mdl-grid">
@@ -208,9 +247,10 @@ if (!empty($_POST['displayname'])) {
 								</thead>
 								<tbody>
 								<?php foreach ($results as $row): ?>
-									<tr>
-										<?php foreach ($row as $cell): ?>
-											<td class="mdl-data-table__cell--non-numeric"><?= $cell ?></td>
+									<tr data-row-id="<?= $row['email']; ?>">
+										<?php foreach ($row as $column => $value): ?>
+											<td data-column-id="<?= $column ?>"
+												class="mdl-data-table__cell--non-numeric is-editable"><?= $value ?></td>
 										<?php endforeach; ?>
 									</tr>
 								<?php endforeach; ?>
@@ -227,5 +267,40 @@ if (!empty($_POST['displayname'])) {
 	var ischat = false;
 	$(window).load(function () {
 		$("#mainContent").addClass('scrollContent');
+
+		$('td.is-editable').click(function (e) {
+			if (!$(e.target).hasClass('is-editable')) {
+				return
+			}
+			var cell = $(this);
+			var rowID = $(this).parent('tr').attr('data-row-id');
+			var columnID = $(this).attr('data-column-id');
+			var data = $(this).text();
+			var input = $('<input type="text" value="' + data + '">');
+			$(this).text('');
+			$(this).append(input);
+			input.focus();
+			input.select();
+			input.keyup(function (event) {
+				if (event.which === 13) {
+					console.log('update the thing!');
+					var newData = input.val();
+					$.ajax({
+						method: "POST",
+						url: "/api/" + api_key + "/admin/update",
+						data: {email: rowID, column: columnID, value: newData}
+					})
+						.done(function (msg) {
+							console.log("Data Saved: " + msg);
+						}).fail(function (jqXHR, textStatus, error) {
+						console.log(textStatus, error);
+					});
+					cell.html(newData);
+				} else if (event.which === 27) {
+					console.log("input cancelled");
+					cell.html(data);
+				}
+			});
+		});
 	});
 </script>

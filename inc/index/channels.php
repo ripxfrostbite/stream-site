@@ -121,7 +121,7 @@ foreach ($rtmpinfo["rtmp"]["channels"] as $channelName => $skey) {
 			<?php } else { ?>
 				<div class="mdl-grid">
 					<div class="mdl-grid mdl-cell--12-col">
-						<div class="mdl-card mdl-shadow--2dp avatar-form">
+						<div class="mdl-card mdl-shadow--2dp settings-form">
 							<div class="mdl-card__title mdl-card--expand">
 								<h2 class="mdl-card__title-text">No channels available.</h2>
 							</div>
@@ -132,7 +132,7 @@ foreach ($rtmpinfo["rtmp"]["channels"] as $channelName => $skey) {
 							</div>
 							<div class="mdl-card__actions mdl-card--border">
 								<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect"
-								   href="/channels"><i class="material-icons">refresh</i> Refresh</a>
+								   href="/channels"><i class="material-icons">refresh</i> Refresh
 								</a>
 							</div>
 						</div>
